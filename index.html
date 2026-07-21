@@ -98,9 +98,16 @@
 
     .settings {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 20px;
+    }
+
+    .lobby-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
     }
 
     label {
@@ -263,7 +270,7 @@
 
     .controls {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       margin-top: 10px;
     }
@@ -317,6 +324,7 @@
       .app { padding: 10px; align-items: start; }
       .screen { border-radius: 20px; }
       .settings { grid-template-columns: 1fr; }
+      .lobby-actions { grid-template-columns: 1fr; }
       .hud { grid-template-columns: repeat(4, 1fr); }
       .hud-item { padding-inline: 3px; font-size: .7rem; }
       .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -339,26 +347,36 @@
     <section class="screen" id="lobby" aria-labelledby="gameTitle">
       <p class="eyebrow">Accessible tactile action</p>
       <h1 id="gameTitle">닷 두더지 잡기</h1>
-      <p class="lead">나타난 두더지를 화면·키보드·닷패드로 빠르게 찾아보세요. 놓치지 않고 연속으로 잡으면 더 높은 점수를 얻습니다.</p>
+      <p class="lead">닷패드 위의 두더지 패턴을 손끝으로 찾고, 기능키로 커서를 옮겨 잡아보세요. 기본 모드에서는 두더지가 사라지지 않아 충분히 탐색할 수 있습니다.</p>
 
       <div class="settings">
-        <label for="difficulty">난이도
-          <select id="difficulty">
-            <option value="easy">쉬움 · 1.8초</option>
-            <option value="normal" selected>보통 · 1.4초</option>
-            <option value="hard">어려움 · 1.0초</option>
+        <label for="gameMode">게임 모드
+          <select id="gameMode">
+            <option value="explore" selected>촉각 탐색 · 시간 제한 없음</option>
+            <option value="challenge">도전 · 빠를수록 보너스</option>
           </select>
         </label>
-        <label for="lives">시작 생명
-          <select id="lives">
-            <option value="3">생명 3개</option>
-            <option value="5" selected>생명 5개</option>
+        <label for="boardSize">보드 크기
+          <select id="boardSize">
+            <option value="3x3" selected>입문 · 3×3</option>
+            <option value="4x3">보통 · 4×3</option>
+            <option value="5x4">확장 · 5×4</option>
+          </select>
+        </label>
+        <label for="roundCount">라운드
+          <select id="roundCount">
+            <option value="5" selected>5라운드</option>
+            <option value="10">10라운드</option>
           </select>
         </label>
       </div>
 
       <button class="primary" id="startBtn" type="button">게임 시작</button>
-      <p class="key-help">방향키 이동 · Enter/Space 잡기 · H 도움말 · R 현황 듣기 · N 새 게임</p>
+      <div class="lobby-actions">
+        <button class="secondary" id="lobbyDotpadBtn" type="button">닷패드 연결</button>
+        <button class="secondary" id="tutorialBtn" type="button">촉각 튜토리얼</button>
+      </div>
+      <p class="key-help">방향키 이동 · Enter/Space 잡기 · H 도움말 · R 현황 · G 힌트 · T 촉각 재출력</p>
     </section>
 
     <section class="screen game-screen hidden" id="game" aria-label="닷 두더지 잡기 플레이 화면">
@@ -368,23 +386,25 @@
       </div>
 
       <div class="hud" aria-label="게임 현황">
+        <div class="hud-item">라운드<strong id="round">1 / 5</strong></div>
         <div class="hud-item">점수<strong id="score">0</strong></div>
-        <div class="hud-item">콤보<strong id="combo">0</strong></div>
-        <div class="hud-item">최고 콤보<strong id="bestCombo">0</strong></div>
-        <div class="hud-item">생명<strong id="livesLeft">5</strong></div>
+        <div class="hud-item">이동<strong id="moves">0</strong></div>
+        <div class="hud-item">힌트<strong id="hints">0</strong></div>
       </div>
 
-      <div class="board" id="board" role="grid" aria-label="5열 4행 두더지 보드" aria-rowcount="4" aria-colcount="5"></div>
+      <div class="board" id="board" role="grid" aria-label="3열 3행 두더지 보드" aria-rowcount="3" aria-colcount="3"></div>
 
       <div class="controls" aria-label="게임 제어">
         <button class="tool-button" id="helpBtn" type="button">도움말</button>
+        <button class="tool-button" id="hintBtn" type="button">방향 힌트</button>
+        <button class="tool-button" id="tactileReplayBtn" type="button">촉각 재출력</button>
         <button class="tool-button" id="repeatBtn" type="button">현황 듣기</button>
         <button class="tool-button" id="soundBtn" type="button" aria-pressed="true">음성 켜짐</button>
         <button class="tool-button" id="dotpadBtn" type="button">닷패드 연결</button>
         <button class="tool-button" id="newGameBtn" type="button">새 게임</button>
         <button class="tool-button" id="lobbyBtn" type="button">로비로</button>
       </div>
-      <p class="key-help">닷패드 F1/F2: 좌우 · F3/F4: 위아래 · 전체 패닝키: 잡기</p>
+      <p class="key-help">닷패드 F1/F2: 좌우 · F3/F4: 위아래 · 왼쪽 패닝: 현황 · 오른쪽 패닝: 힌트 · 전체 패닝: 잡기</p>
     </section>
   </main>
 
@@ -392,13 +412,27 @@
     <div class="dialog-body">
       <h2 id="helpTitle">게임 방법</h2>
       <ul>
-        <li>방향키 또는 닷패드 기능키로 커서를 움직입니다.</li>
-        <li>두더지 위치에서 Enter, Space 또는 전체 패닝키를 누릅니다.</li>
-        <li>화면에서는 두더지가 나타난 칸을 직접 눌러도 됩니다.</li>
-        <li>놓치면 생명이 하나 줄고, 생명이 0이 되면 종료됩니다.</li>
+        <li>먼저 닷패드에서 중앙 십자 모양의 두더지를 손끝으로 찾습니다.</li>
+        <li>F1/F2는 좌우, F3/F4는 위아래로 사각 테두리 커서를 움직입니다.</li>
+        <li>커서를 두더지에 맞춘 뒤 전체 패닝키 또는 Enter/Space를 누릅니다.</li>
+        <li>촉각 탐색 모드에서는 두더지가 사라지지 않으며 오답에도 생명이 줄지 않습니다.</li>
+        <li>힌트가 필요하면 오른쪽 패닝키 또는 G를 누릅니다.</li>
       </ul>
       <div class="dialog-actions">
         <button class="primary" id="closeHelpBtn" type="button">게임으로 돌아가기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="tutorialDialog" aria-labelledby="tutorialTitle">
+    <div class="dialog-body">
+      <p class="eyebrow">Tactile tutorial</p>
+      <h2 id="tutorialTitle">촉각 패턴 익히기</h2>
+      <p id="tutorialStepText">닷패드의 좌측 상단 L자 기준점을 찾아보세요.</p>
+      <p id="tutorialProgress" class="key-help">1 / 5</p>
+      <div class="dialog-actions">
+        <button class="primary" id="tutorialNextBtn" type="button">다음 패턴</button>
+        <button class="secondary" id="tutorialCloseBtn" type="button">튜토리얼 종료</button>
       </div>
     </div>
   </dialog>
@@ -419,16 +453,22 @@
 
   <script type="module">
     const SDK_URL = 'https://tactileworlds.com/superdot/DotPadSDK-3.0.0.js';
-    const COLS = 5;
-    const ROWS = 4;
+    const BOARD_PRESETS = {
+      '3x3': { cols: 3, rows: 3 },
+      '4x3': { cols: 4, rows: 3 },
+      '5x4': { cols: 5, rows: 4 }
+    };
 
     const $ = (id) => document.getElementById(id);
     const elements = {
       lobby: $('lobby'), game: $('game'), board: $('board'),
       statusText: $('statusText'), statusDot: $('statusDot'), assertive: $('assertiveStatus'),
-      score: $('score'), combo: $('combo'), bestCombo: $('bestCombo'), lives: $('livesLeft'),
+      round: $('round'), score: $('score'), moves: $('moves'), hints: $('hints'),
       start: $('startBtn'), newGame: $('newGameBtn'), lobbyBtn: $('lobbyBtn'),
-      help: $('helpBtn'), repeat: $('repeatBtn'), sound: $('soundBtn'), dotpad: $('dotpadBtn'),
+      help: $('helpBtn'), hint: $('hintBtn'), tactileReplay: $('tactileReplayBtn'),
+      repeat: $('repeatBtn'), sound: $('soundBtn'), dotpad: $('dotpadBtn'), lobbyDotpad: $('lobbyDotpadBtn'),
+      tutorial: $('tutorialBtn'), tutorialDialog: $('tutorialDialog'), tutorialStepText: $('tutorialStepText'),
+      tutorialProgress: $('tutorialProgress'), tutorialNext: $('tutorialNextBtn'), tutorialClose: $('tutorialCloseBtn'),
       helpDialog: $('helpDialog'), closeHelp: $('closeHelpBtn'),
       resultDialog: $('resultDialog'), resultText: $('resultText'), retry: $('retryBtn'), resultLobby: $('resultLobbyBtn')
     };
@@ -484,6 +524,14 @@
       device: null,
       connecting: false,
 
+      updateButtons(label, connected = false, disabled = false) {
+        for (const button of [elements.dotpad, elements.lobbyDotpad]) {
+          button.textContent = label;
+          button.disabled = disabled;
+          button.classList.toggle('connected', connected);
+        }
+      },
+
       async load() {
         if (this.module) return this.module;
         this.module = await import(SDK_URL);
@@ -493,15 +541,13 @@
           (device, code) => {
             if (code === this.module.DataCodes.Connected) {
               this.device = device;
-              elements.dotpad.classList.add('connected');
-              elements.dotpad.textContent = '닷패드 연결됨';
+              this.updateButtons('닷패드 연결됨', true);
               TW.Banner.set('닷패드가 연결되었습니다. 손끝으로 보드를 확인하세요.', 'ok', true);
               Game.renderTactile();
             }
             if (code === this.module.DataCodes.Disconnected) {
               this.device = null;
-              elements.dotpad.classList.remove('connected');
-              elements.dotpad.textContent = '닷패드 연결';
+              this.updateButtons('닷패드 연결');
               TW.Banner.set('닷패드 연결이 끊겼습니다. 화면과 키보드로 계속할 수 있습니다.', 'warn', true);
             }
           },
@@ -512,8 +558,8 @@
               [K.KeyFunction2]: () => Game.move(1, 0),
               [K.KeyFunction3]: () => Game.move(0, -1),
               [K.KeyFunction4]: () => Game.move(0, 1),
-              [K.PanningLeft]: () => Game.move(-1, 0),
-              [K.PanningRight]: () => Game.move(1, 0),
+              [K.PanningLeft]: () => Game.speakStatus(),
+              [K.PanningRight]: () => Game.giveHint(),
               [K.PanningAll]: () => Game.confirm()
             };
             actions[key]?.();
@@ -530,23 +576,20 @@
         }
         if (!navigator.bluetooth) throw new Error('Web Bluetooth를 지원하는 Chrome 또는 Edge가 필요합니다.');
         this.connecting = true;
-        elements.dotpad.disabled = true;
-        elements.dotpad.textContent = '기기 찾는 중…';
+        this.updateButtons('기기 찾는 중…', false, true);
         try {
           await this.load();
           const bluetoothDevice = await this.scanner.startBleScan();
           if (!bluetoothDevice) return false;
           this.device = await this.sdk.connectBleDevice(bluetoothDevice);
           if (this.device) {
-            elements.dotpad.classList.add('connected');
-            elements.dotpad.textContent = '닷패드 연결됨';
+            this.updateButtons('닷패드 연결됨', true);
             this.render(Game.tactileState());
           }
           return Boolean(this.device);
         } finally {
           this.connecting = false;
-          elements.dotpad.disabled = false;
-          if (!this.device) elements.dotpad.textContent = '닷패드 연결';
+          this.updateButtons(this.device ? '닷패드 연결됨' : '닷패드 연결', Boolean(this.device));
         }
       },
 
@@ -556,8 +599,7 @@
           try { this.sdk.disconnect(this.device); } catch (_) {}
         }
         this.device = null;
-        elements.dotpad.classList.remove('connected');
-        elements.dotpad.textContent = '닷패드 연결';
+        this.updateButtons('닷패드 연결');
       },
 
       encodePins(pinRows, width, height) {
@@ -585,24 +627,31 @@
         const width = Math.max(10, (this.device.numberCellColumns || 30) * 2);
         const height = Math.max(8, (this.device.numberCellRows || 10) * 4);
         const pins = Array.from({ length: height }, () => Array(width).fill(false));
-        const cellWidth = width / COLS;
-        const cellHeight = height / ROWS;
+        const cols = state.cols || 3;
+        const rows = state.rows || 3;
+        const cellWidth = width / cols;
+        const cellHeight = height / rows;
         const setPin = (x, y, on = true) => {
           const px = Math.round(x);
           const py = Math.round(y);
           if (px >= 0 && px < width && py >= 0 && py < height) pins[py][px] = on;
         };
 
-        for (let row = 0; row < ROWS; row += 1) {
-          for (let col = 0; col < COLS; col += 1) {
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
             const x0 = Math.floor(col * cellWidth);
             const x1 = Math.max(x0 + 2, Math.floor((col + 1) * cellWidth) - 1);
             const y0 = Math.floor(row * cellHeight);
             const y1 = Math.max(y0 + 2, Math.floor((row + 1) * cellHeight) - 1);
             setPin(x0 + 1, y0 + 1);
-            setPin(x1 - 1, y0 + 1);
+            if (row === 0 && col === 0) {
+              setPin(x0 + 2, y0 + 1);
+              setPin(x0 + 3, y0 + 1);
+              setPin(x0 + 1, y0 + 2);
+              setPin(x0 + 1, y0 + 3);
+            }
 
-            const index = row * COLS + col;
+            const index = row * cols + col;
             if (index === state.cursorIndex) {
               for (let x = x0 + 2; x <= x1 - 2; x += 1) {
                 setPin(x, y0 + 1);
@@ -625,11 +674,38 @@
               setPin(cx - 1, cy + 1);
               setPin(cx + 1, cy + 1);
             }
+            if (index === state.successIndex) {
+              const cx = Math.floor((x0 + x1) / 2);
+              const cy = Math.floor((y0 + y1) / 2);
+              for (let y = cy - 2; y <= cy + 2; y += 1) {
+                for (let x = cx - 2; x <= cx + 2; x += 1) setPin(x, y);
+              }
+            }
+            if (index === state.wrongIndex) {
+              const cx = Math.floor((x0 + x1) / 2);
+              const cy = Math.floor((y0 + y1) / 2);
+              for (let delta = -2; delta <= 2; delta += 1) {
+                setPin(cx + delta, cy + delta);
+                setPin(cx + delta, cy - delta);
+              }
+            }
           }
         }
 
         const hex = this.encodePins(pins, width, height);
         this.sdk.displayGraphicData(hex, this.device, this.module.DisplayMode.GraphicMode);
+      },
+
+      renderTutorial(pattern) {
+        if (!this.device || !this.sdk) return;
+        const cols = pattern === 'origin' ? 1 : 3;
+        const rows = pattern === 'origin' ? 1 : 3;
+        const center = 4;
+        const state = { cols, rows, cursorIndex: -1, moleIndex: -1, successIndex: -1, wrongIndex: -1 };
+        if (pattern === 'cursor') state.cursorIndex = center;
+        if (pattern === 'mole') state.moleIndex = center;
+        if (pattern === 'success') state.successIndex = center;
+        this.render(state);
       }
     };
 
@@ -637,32 +713,53 @@
 
     const Game = {
       cells: [],
+      cols: 3,
+      rows: 3,
+      mode: 'explore',
       cursorIndex: 0,
       moleIndex: -1,
+      previousMoleIndex: -1,
+      successIndex: -1,
+      wrongIndex: -1,
+      round: 1,
+      totalRounds: 5,
       score: 0,
-      combo: 0,
-      bestCombo: 0,
-      lives: 5,
-      speed: 1400,
+      totalMoves: 0,
+      totalHints: 0,
+      roundMoves: 0,
+      roundHints: 0,
+      roundWrongs: 0,
+      minimumMoves: 0,
+      roundStartedAt: 0,
       running: false,
       spawnTimer: null,
-      moleTimer: null,
+      feedbackTimer: null,
 
       buildBoard() {
         elements.board.replaceChildren();
+        elements.board.style.gridTemplateColumns = `repeat(${this.cols}, minmax(0, 1fr))`;
+        elements.board.setAttribute('aria-label', `${this.cols}열 ${this.rows}행 두더지 보드`);
+        elements.board.setAttribute('aria-rowcount', String(this.rows));
+        elements.board.setAttribute('aria-colcount', String(this.cols));
         this.cells = [];
-        for (let index = 0; index < COLS * ROWS; index += 1) {
-          const row = Math.floor(index / COLS);
-          const col = index % COLS;
+        for (let index = 0; index < this.cols * this.rows; index += 1) {
+          const row = Math.floor(index / this.cols);
+          const col = index % this.cols;
           const cell = document.createElement('button');
           cell.type = 'button';
           cell.className = 'cell';
           cell.setAttribute('role', 'gridcell');
           cell.setAttribute('aria-rowindex', String(row + 1));
           cell.setAttribute('aria-colindex', String(col + 1));
-          cell.dataset.index = String(index);
           cell.addEventListener('click', () => {
             if (!this.running) return;
+            const oldX = this.cursorIndex % this.cols;
+            const oldY = Math.floor(this.cursorIndex / this.cols);
+            const newX = index % this.cols;
+            const newY = Math.floor(index / this.cols);
+            const distance = Math.abs(newX - oldX) + Math.abs(newY - oldY);
+            this.totalMoves += distance;
+            this.roundMoves += distance;
             this.cursorIndex = index;
             this.render();
             this.confirm();
@@ -675,107 +772,152 @@
 
       clearTimers() {
         clearTimeout(this.spawnTimer);
-        clearTimeout(this.moleTimer);
+        clearTimeout(this.feedbackTimer);
         this.spawnTimer = null;
-        this.moleTimer = null;
+        this.feedbackTimer = null;
       },
 
       start() {
         this.clearTimers();
         TW.TTS.stop();
         if (elements.resultDialog.open) elements.resultDialog.close();
-        this.score = 0;
-        this.combo = 0;
-        this.bestCombo = 0;
-        this.lives = Number($('lives').value);
-        this.speed = { easy: 1800, normal: 1400, hard: 1000 }[$('difficulty').value];
+        const preset = BOARD_PRESETS[$('boardSize').value] || BOARD_PRESETS['3x3'];
+        this.cols = preset.cols;
+        this.rows = preset.rows;
+        this.mode = $('gameMode').value;
+        this.totalRounds = Number($('roundCount').value);
         this.cursorIndex = 0;
         this.moleIndex = -1;
+        this.previousMoleIndex = -1;
+        this.successIndex = -1;
+        this.wrongIndex = -1;
+        this.round = 1;
+        this.score = 0;
+        this.totalMoves = 0;
+        this.totalHints = 0;
         this.running = true;
         elements.lobby.classList.add('hidden');
         elements.game.classList.remove('hidden');
         this.updateHud();
         this.buildBoard();
-        TW.Banner.set('게임 시작! 첫 두더지를 기다리세요.', 'ok');
-        TW.TTS.speak('게임 시작. 첫 두더지를 기다리세요.');
-        this.spawnTimer = setTimeout(() => this.spawn(), 800);
-        TW.post('game-start', { difficulty: $('difficulty').value });
+        TW.Banner.set('촉각 보드를 준비하고 있습니다.', 'ok');
+        TW.TTS.speak('게임 시작. 닷패드에서 좌측 상단 엘 자 기준점과 두더지 십자 패턴을 찾아보세요.');
+        this.spawnTimer = setTimeout(() => this.spawn(), 700);
+        TW.post('game-start', { mode: this.mode, cols: this.cols, rows: this.rows, rounds: this.totalRounds });
         requestAnimationFrame(() => this.cells[0]?.focus());
       },
 
       spawn() {
         if (!this.running) return;
-        const previous = this.moleIndex;
+        this.successIndex = -1;
+        this.wrongIndex = -1;
         let next = Math.floor(Math.random() * this.cells.length);
-        if (this.cells.length > 1 && next === previous) next = (next + 1 + Math.floor(Math.random() * (this.cells.length - 1))) % this.cells.length;
+        if (this.cells.length > 1 && next === this.previousMoleIndex) next = (next + 1) % this.cells.length;
         this.moleIndex = next;
+        this.previousMoleIndex = next;
+        this.roundMoves = 0;
+        this.roundHints = 0;
+        this.roundWrongs = 0;
+        this.roundStartedAt = performance.now();
+        const cursorX = this.cursorIndex % this.cols;
+        const cursorY = Math.floor(this.cursorIndex / this.cols);
+        const moleX = next % this.cols;
+        const moleY = Math.floor(next / this.cols);
+        this.minimumMoves = Math.abs(cursorX - moleX) + Math.abs(cursorY - moleY);
         this.render();
-        const position = this.positionText(next);
-        TW.Banner.set(`두더지 등장! ${position}`, 'warn');
-        TW.TTS.speak(`두더지, ${position}`);
-        clearTimeout(this.moleTimer);
-        this.moleTimer = setTimeout(() => this.miss(), this.speed);
-      },
-
-      miss() {
-        if (!this.running || this.moleIndex < 0) return;
-        const missedIndex = this.moleIndex;
-        this.moleIndex = -1;
-        this.combo = 0;
-        this.lives -= 1;
-        this.cells[missedIndex]?.classList.add('miss');
-        setTimeout(() => this.cells[missedIndex]?.classList.remove('miss'), 260);
         this.updateHud();
-        this.render();
-        if (this.lives <= 0) {
-          this.end();
-          return;
-        }
-        TW.Banner.set(`놓쳤습니다. 남은 생명 ${this.lives}개`, 'bad', true);
-        TW.TTS.speak(`놓쳤습니다. 남은 생명 ${this.lives}개`);
-        this.spawnTimer = setTimeout(() => this.spawn(), 520);
+        TW.Banner.set(`${this.round}라운드. 두더지가 나타났습니다. 손끝으로 찾아보세요.`, 'warn', true);
+        TW.TTS.speak(`${this.round}라운드. 두더지가 나타났습니다. 시간 제한은 없습니다.`);
       },
 
       confirm() {
-        if (!this.running) return;
-        if (this.moleIndex < 0) {
-          TW.Banner.set('아직 두더지가 없습니다. 잠시 기다리세요.', 'warn');
-          return;
-        }
+        if (!this.running || this.moleIndex < 0) return;
         if (this.cursorIndex !== this.moleIndex) {
-          this.combo = 0;
-          this.updateHud();
-          TW.Banner.set(`빈 칸입니다. 현재 커서는 ${this.positionText(this.cursorIndex)}`, 'warn');
-          TW.TTS.speak('빈 칸입니다.');
+          this.roundWrongs += 1;
+          this.wrongIndex = this.cursorIndex;
+          this.render();
+          TW.Banner.set('빈 칸입니다. 두더지는 그대로 있으니 다시 탐색하세요.', 'warn', true);
+          TW.TTS.speak('빈 칸입니다. 다시 탐색하세요.');
+          clearTimeout(this.feedbackTimer);
+          this.feedbackTimer = setTimeout(() => {
+            this.wrongIndex = -1;
+            this.render();
+          }, 500);
           return;
         }
 
-        clearTimeout(this.moleTimer);
         const hitIndex = this.moleIndex;
+        const elapsedSeconds = (performance.now() - this.roundStartedAt) / 1000;
+        const extraMoves = Math.max(0, this.roundMoves - this.minimumMoves);
+        const timePenalty = this.mode === 'challenge' ? Math.floor(elapsedSeconds * 2) : 0;
+        const earned = Math.max(20, 100 - extraMoves * 3 - this.roundHints * 15 - this.roundWrongs * 5 - timePenalty);
+        this.score += earned;
         this.moleIndex = -1;
-        this.score += 10 + this.combo * 2;
-        this.combo += 1;
-        this.bestCombo = Math.max(this.bestCombo, this.combo);
-        this.speed = Math.max(600, this.speed - 24);
+        this.successIndex = hitIndex;
         this.cells[hitIndex]?.classList.add('hit');
-        setTimeout(() => this.cells[hitIndex]?.classList.remove('hit'), 220);
         this.updateHud();
         this.render();
-        TW.Banner.set(`명중! ${this.combo}콤보, 현재 ${this.score}점`, 'ok', true);
-        TW.TTS.speak(`명중. ${this.combo}콤보, ${this.score}점`);
-        this.spawnTimer = setTimeout(() => this.spawn(), 420);
+        TW.Banner.set(`찾았습니다! 이번 라운드 ${earned}점`, 'ok', true);
+        TW.TTS.speak(`찾았습니다. 이번 라운드 ${earned}점.`);
+        clearTimeout(this.feedbackTimer);
+        this.feedbackTimer = setTimeout(() => {
+          this.cells[hitIndex]?.classList.remove('hit');
+          this.successIndex = -1;
+          if (this.round >= this.totalRounds) this.end();
+          else {
+            this.round += 1;
+            this.spawn();
+          }
+        }, 900);
       },
 
       move(deltaX, deltaY) {
-        if (!this.running) return;
-        const x = this.cursorIndex % COLS;
-        const y = Math.floor(this.cursorIndex / COLS);
-        const nextX = Math.max(0, Math.min(COLS - 1, x + deltaX));
-        const nextY = Math.max(0, Math.min(ROWS - 1, y + deltaY));
-        this.cursorIndex = nextY * COLS + nextX;
+        if (!this.running || this.moleIndex < 0) return;
+        const x = this.cursorIndex % this.cols;
+        const y = Math.floor(this.cursorIndex / this.cols);
+        const nextX = Math.max(0, Math.min(this.cols - 1, x + deltaX));
+        const nextY = Math.max(0, Math.min(this.rows - 1, y + deltaY));
+        const nextIndex = nextY * this.cols + nextX;
+        if (nextIndex === this.cursorIndex) {
+          TW.TTS.speak('보드 경계입니다.');
+          TW.Banner.set('보드 경계입니다.', 'warn');
+          return;
+        }
+        this.cursorIndex = nextIndex;
+        this.totalMoves += 1;
+        this.roundMoves += 1;
+        this.updateHud();
         this.render();
         this.cells[this.cursorIndex]?.focus({ preventScroll: true });
         TW.TTS.speak(this.positionText(this.cursorIndex));
+      },
+
+      giveHint() {
+        if (!this.running || this.moleIndex < 0) return;
+        const cursorX = this.cursorIndex % this.cols;
+        const cursorY = Math.floor(this.cursorIndex / this.cols);
+        const moleX = this.moleIndex % this.cols;
+        const moleY = Math.floor(this.moleIndex / this.cols);
+        const horizontal = moleX > cursorX ? '오른쪽' : moleX < cursorX ? '왼쪽' : '';
+        const vertical = moleY > cursorY ? '아래' : moleY < cursorY ? '위' : '';
+        const direction = [horizontal, vertical].filter(Boolean).join(' ') || '현재 커서 위치';
+        this.totalHints += 1;
+        this.roundHints += 1;
+        this.updateHud();
+        const message = direction === '현재 커서 위치' ? '두더지는 현재 커서 위치에 있습니다.' : `두더지는 현재 커서보다 ${direction} 방향에 있습니다.`;
+        TW.Banner.set(message, 'ok');
+        TW.TTS.speak(message);
+      },
+
+      replayTactile() {
+        if (!DotPad.device) {
+          TW.Banner.set('닷패드가 연결되지 않았습니다.', 'warn', true);
+          TW.TTS.speak('닷패드가 연결되지 않았습니다.');
+          return;
+        }
+        this.renderTactile();
+        TW.Banner.set('현재 촉각 보드를 다시 출력했습니다.', 'ok');
+        TW.TTS.speak('촉각 보드를 다시 출력했습니다.');
       },
 
       render() {
@@ -784,6 +926,7 @@
           const isMole = index === this.moleIndex;
           cell.classList.toggle('cursor', isCursor);
           cell.classList.toggle('mole', isMole);
+          cell.classList.toggle('miss', index === this.wrongIndex);
           cell.tabIndex = isCursor ? 0 : -1;
           cell.setAttribute('aria-selected', String(isCursor));
           cell.setAttribute('aria-label', `${this.positionText(index)}${isMole ? ', 두더지 있음' : ', 빈 칸'}${isCursor ? ', 현재 커서' : ''}`);
@@ -791,35 +934,46 @@
         this.renderTactile();
       },
 
-      tactileState() { return { cursorIndex: this.cursorIndex, moleIndex: this.moleIndex }; },
+      tactileState() {
+        return {
+          cols: this.cols,
+          rows: this.rows,
+          cursorIndex: this.cursorIndex,
+          moleIndex: this.moleIndex,
+          successIndex: this.successIndex,
+          wrongIndex: this.wrongIndex
+        };
+      },
       renderTactile() { DotPad.render(this.tactileState()); },
 
       updateHud() {
+        elements.round.textContent = `${this.round} / ${this.totalRounds}`;
         elements.score.textContent = String(this.score);
-        elements.combo.textContent = String(this.combo);
-        elements.bestCombo.textContent = String(this.bestCombo);
-        elements.lives.textContent = String(this.lives);
+        elements.moves.textContent = String(this.totalMoves);
+        elements.hints.textContent = String(this.totalHints);
       },
 
       positionText(index) {
-        return `${Math.floor(index / COLS) + 1}행 ${index % COLS + 1}열`;
+        return `${Math.floor(index / this.cols) + 1}행 ${index % this.cols + 1}열`;
       },
 
       speakStatus() {
-        TW.TTS.speak(`현재 점수 ${this.score}점, ${this.combo}콤보, 최고 ${this.bestCombo}콤보, 남은 생명 ${this.lives}개. 커서는 ${this.positionText(this.cursorIndex)}`);
+        if (!this.running) return;
+        TW.TTS.speak(`${this.round}라운드, 현재 점수 ${this.score}점, 이동 ${this.totalMoves}회, 힌트 ${this.totalHints}회. 커서는 ${this.positionText(this.cursorIndex)}입니다.`);
       },
 
       end() {
         this.running = false;
         this.clearTimers();
         this.moleIndex = -1;
+        this.successIndex = -1;
         this.render();
-        const summary = `최종 점수 ${this.score}점, 최고 콤보 ${this.bestCombo}회`;
-        TW.Banner.set('게임이 종료되었습니다.', 'bad', true);
+        const summary = `${this.totalRounds}라운드 완료. 최종 점수 ${this.score}점, 이동 ${this.totalMoves}회, 힌트 ${this.totalHints}회`;
+        TW.Banner.set('모든 라운드를 완료했습니다.', 'ok', true);
         elements.resultText.textContent = summary;
         elements.resultDialog.showModal();
-        TW.TTS.speak(`게임 종료. ${summary}`);
-        TW.post('game-complete', { score: this.score, bestCombo: this.bestCombo });
+        TW.TTS.speak(`게임 완료. ${summary}`);
+        TW.post('game-complete', { score: this.score, moves: this.totalMoves, hints: this.totalHints, rounds: this.totalRounds });
       },
 
       toLobby() {
@@ -830,13 +984,59 @@
         elements.game.classList.add('hidden');
         elements.lobby.classList.remove('hidden');
         elements.start.focus();
-        DotPad.render({ cursorIndex: -1, moleIndex: -1 });
+        DotPad.render({ cols: 3, rows: 3, cursorIndex: -1, moleIndex: -1 });
+      }
+    };
+
+    const Tutorial = {
+      index: 0,
+      steps: [
+        { pattern: 'origin', text: '좌측 상단의 굵은 L자 패턴은 보드의 시작점을 알려줍니다.' },
+        { pattern: 'empty', text: '각 칸의 작은 기준점은 빈 칸의 위치와 간격을 알려줍니다.' },
+        { pattern: 'cursor', text: '사각 테두리는 현재 커서입니다. 기능키를 누르면 한 칸씩 이동합니다.' },
+        { pattern: 'mole', text: '칸 중앙의 굵은 십자 패턴이 잡아야 할 두더지입니다.' },
+        { pattern: 'success', text: '가운데가 가득 찬 패턴은 두더지를 잡았다는 성공 표시입니다.' }
+      ],
+
+      open() {
+        this.index = 0;
+        elements.tutorialDialog.showModal();
+        this.show();
+      },
+
+      show() {
+        const step = this.steps[this.index];
+        const connectionNote = DotPad.device ? '' : '닷패드 연결 후 실제 패턴이 출력됩니다. ';
+        elements.tutorialStepText.textContent = connectionNote + step.text;
+        elements.tutorialProgress.textContent = `${this.index + 1} / ${this.steps.length}`;
+        elements.tutorialNext.textContent = this.index === this.steps.length - 1 ? '튜토리얼 완료' : '다음 패턴';
+        DotPad.renderTutorial(step.pattern);
+        TW.TTS.speak(`${this.index + 1}단계. ${step.text}`);
+      },
+
+      next() {
+        if (this.index >= this.steps.length - 1) {
+          this.close();
+          TW.TTS.speak('촉각 튜토리얼을 완료했습니다.');
+          return;
+        }
+        this.index += 1;
+        this.show();
+      },
+
+      close() {
+        if (elements.tutorialDialog.open) elements.tutorialDialog.close();
+        if (Game.running) Game.renderTactile();
+        else DotPad.render({ cols: 3, rows: 3, cursorIndex: -1, moleIndex: -1 });
+        elements.tutorial.focus();
       }
     };
 
     window.TWGame = {
       moveCursor: (dx, dy) => Game.move(dx, dy),
       confirm: () => Game.confirm(),
+      hint: () => Game.giveHint(),
+      replayTactile: () => Game.replayTactile(),
       start: () => Game.start()
     };
 
@@ -848,6 +1048,11 @@
     elements.help.addEventListener('click', () => elements.helpDialog.showModal());
     elements.closeHelp.addEventListener('click', () => elements.helpDialog.close());
     elements.repeat.addEventListener('click', () => Game.speakStatus());
+    elements.hint.addEventListener('click', () => Game.giveHint());
+    elements.tactileReplay.addEventListener('click', () => Game.replayTactile());
+    elements.tutorial.addEventListener('click', () => Tutorial.open());
+    elements.tutorialNext.addEventListener('click', () => Tutorial.next());
+    elements.tutorialClose.addEventListener('click', () => Tutorial.close());
 
     elements.sound.addEventListener('click', () => {
       const enabled = elements.sound.getAttribute('aria-pressed') !== 'true';
@@ -858,7 +1063,7 @@
       TW.Banner.set(`음성 안내가 ${enabled ? '켜졌습니다' : '꺼졌습니다'}.`, 'ok');
     });
 
-    elements.dotpad.addEventListener('click', async () => {
+    const toggleDotPad = async () => {
       if (DotPad.device) {
         await DotPad.disconnect();
         TW.Banner.set('닷패드 연결을 해제했습니다.', 'warn', true);
@@ -866,16 +1071,22 @@
       }
       try {
         const connected = await DotPad.connect();
-        if (!connected) TW.Banner.set('닷패드 연결이 취소되었거나 실패했습니다.', 'warn', true);
+        if (connected) {
+          TW.Banner.set('닷패드가 연결되었습니다. 처음이라면 촉각 튜토리얼을 실행해보세요.', 'ok', true);
+          TW.TTS.speak('닷패드가 연결되었습니다. 촉각 튜토리얼을 먼저 권장합니다.');
+        } else TW.Banner.set('닷패드 연결이 취소되었거나 실패했습니다.', 'warn', true);
       } catch (error) {
         console.error(error);
         TW.Banner.set(error.message || '닷패드 연결 중 오류가 발생했습니다.', 'bad', true);
         TW.TTS.speak('닷패드 연결에 실패했습니다. 화면과 키보드로 계속할 수 있습니다.');
       }
-    });
+    };
+
+    elements.dotpad.addEventListener('click', toggleDotPad);
+    elements.lobbyDotpad.addEventListener('click', toggleDotPad);
 
     document.addEventListener('keydown', (event) => {
-      if (elements.helpDialog.open || elements.resultDialog.open) return;
+      if (elements.helpDialog.open || elements.resultDialog.open || elements.tutorialDialog.open) return;
       const key = event.key;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(key)) event.preventDefault();
       if (!Game.running) return;
@@ -890,6 +1101,10 @@
         H: () => elements.helpDialog.showModal(),
         r: () => Game.speakStatus(),
         R: () => Game.speakStatus(),
+        g: () => Game.giveHint(),
+        G: () => Game.giveHint(),
+        t: () => Game.replayTactile(),
+        T: () => Game.replayTactile(),
         n: () => Game.start(),
         N: () => Game.start()
       };
@@ -897,22 +1112,15 @@
     });
 
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && Game.running) {
-        Game.clearTimers();
-        Game.moleIndex = -1;
-        Game.render();
-        TW.Banner.set('게임이 일시 정지되었습니다. 화면으로 돌아오면 다시 시작합니다.', 'warn');
-      } else if (!document.hidden && Game.running) {
-        Game.spawnTimer = setTimeout(() => Game.spawn(), 800);
-        TW.Banner.set('게임을 다시 시작합니다.', 'ok');
-      }
+      if (document.hidden) TW.TTS.stop();
+      else if (Game.running) TW.Banner.set('두더지는 그대로 있습니다. 촉각 탐색을 계속하세요.', 'ok');
     });
 
     const params = new URLSearchParams(location.search);
     if (params.get('embed') === '1') document.body.classList.add('embed');
     window.addEventListener('load', () => {
       TW.TTS.setLang('ko');
-      TW.post('game-ready', { version: '1.0.0' });
+      TW.post('game-ready', { version: '2.0.0' });
     });
     window.addEventListener('beforeunload', () => DotPad.disconnect());
   </script>
