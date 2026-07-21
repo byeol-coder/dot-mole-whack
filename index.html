@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>닷 두더지 잡기 - Dot Mole Whack</title>
+<style>
+  :root{
+    --tw-bg:#0b0f14; --tw-panel:#111826; --tw-accent:#ff7a30;
+    --tw-line:#2a3a4d; --tw-text:#eef2f6; --tw-sub:#9fb0c0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--tw-bg);color:var(--tw-text);
+    font-family:'Apple SD Gothic Neo',system-ui,sans-serif;}
+  .tw-screen{max-width:520px;margin:0 auto;padding:16px;}
+  .tw-hidden{display:none !important;}
+
+  /* ===== TWLobby ===== */
+  .tw-lobby{text-align:center;padding-top:24px;}
+  .tw-logo{font-size:32px;font-weight:800;letter-spacing:1px;}
+  .tw-sub{color:var(--tw-sub);margin-top:4px;}
+  .tw-field-row{display:flex;gap:8px;justify-content:center;margin:16px 0;}
+  .tw-select{background:var(--tw-panel);border:1px solid var(--tw-line);
+    color:var(--tw-text);padding:10px 14px;border-radius:10px;}
+  .tw-cta{background:var(--tw-accent);color:#fff;border:none;border-radius:14px;
+    padding:14px 24px;font-size:18px;font-weight:700;cursor:pointer;width:100%;max-width:320px;}
+
+  /* ===== TWStatusBanner ===== */
+  .tw-banner{display:flex;align-items:center;gap:8px;background:var(--tw-panel);
+    border:1px solid var(--tw-line);border-radius:12px;padding:10px 14px;margin-bottom:12px;}
+  .tw-dot{width:10px;height:10px;border-radius:50%;background:#2ecc71;flex:0 0 auto;}
+  .tw-dot.warn{background:#f1c40f;} .tw-dot.bad{background:#e74c3c;}
+
+  /* ===== TWHud ===== */
+  .tw-hud{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .tw-chip{background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:20px;
+    padding:6px 12px;font-size:14px;}
+  .tw-chip b{color:var(--tw-accent);}
+
+  /* ===== TWGridBoard ===== */
+  .tw-board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+    background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:14px;padding:12px;}
+  .tw-cell{aspect-ratio:1;border-radius:10px;background:#1a2332;border:2px solid var(--tw-line);
+    display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .1s;}
+  .tw-cell.cursor{outline:3px solid #4aa3ff;}
+  .tw-cell.mole{background:#3d2b12;border-color:var(--tw-accent);}
+  .tw-cell.hit{background:#1f6e3d;border-color:#2ecc71;}
+  .tw-cell.miss{background:#5a1f1f;border-color:#e74c3c;}
+
+  /* ===== TWControlBar ===== */
+  .tw-controlbar{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+  .tw-icon-btn{background:var(--tw-panel);border:1px solid var(--tw-line);color:var(--tw-text);
+    border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;}
+  .tw-keyhint{text-align:center;color:var(--tw-sub);font-size:12px;margin-top:6px;}
+
+  /* ===== TWResultModal ===== */
+  .tw-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);
+    display:flex;align-items:center;justify-content:center;}
+  .tw-modal{background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:16px;
+    padding:24px;text-align:center;width:90%;max-width:340px;}
+  .tw-modal h2{margin-top:0;}
+</style>
+</head>
+<body>
+
+<!-- ===== 1) TWLobby 모듈 ===== -->
+<div id="lobby" class="tw-screen tw-lobby">
+  <div class="tw-logo">🐹 닷 두더지 잡기</div>
+  <div class="tw-sub">튀어나온 두더지를 손끝 반응속도로 잡아보세요</div>
+  <div class="tw-field-row">
+    <select id="difficulty" class="tw-select">
+      <option value="easy">쉬움</option>
+      <option value="normal" selected>보통</option>
+      <option value="hard">어려움</option>
+    </select>
+    <select id="lives" class="tw-select">
+      <option value="3">생명 3</option>
+      <option value="5" selected>생명 5</option>
+    </select>
+  </div>
+  <button class="tw-cta" id="startBtn">▶ 새 게임</button>
+  <div class="tw-keyhint">방향키 이동 · Enter/Space 잡기 · N 새 게임 · H 도움말</div>
+</div>
+
+<!-- ===== 2) 인게임 화면 (Banner + Hud + Board + ControlBar) ===== -->
+<div id="game" class="tw-screen tw-hidden">
+  <div class="tw-banner"><span class="tw-dot" id="statusDot"></span><span id="statusText">두더지를 잡을 준비를 하세요!</span></div>
+  <div class="tw-hud">
+    <div class="tw-chip">점수 <b id="score">0</b></div>
+    <div class="tw-chip">콤보 <b id="combo">0</b></div>
+    <div class="tw-chip">생명 <b id="livesLeft">5</b></div>
+  </div>
+  <div class="tw-board" id="board"></div>
+  <div class="tw-controlbar">
+    <button class="tw-icon-btn" id="helpBtn">❓ 도움말</button>
+    <button class="tw-icon-btn" id="voiceBtn">🔊 현황 듣기</button>
+    <button class="tw-icon-btn" id="dotpadBtn">📶 닷패드 연결</button>
+    <button class="tw-icon-btn" id="newGameBtn">🔄 새 게임</button>
+  </div>
+  <div class="tw-keyhint">방향키 이동 · Enter/Space 잡기 · F1~F4 닷패드 동작키</div>
+</div>
+
+<!-- ===== 3) TWResultModal 모듈 ===== -->
+<div id="resultModal" class="tw-modal-backdrop tw-hidden">
+  <div class="tw-modal">
+    <h2>게임 종료</h2>
+    <p id="resultText">최종 점수: 0 (최고 콤보 0)</p>
+    <button class="tw-cta" id="retryBtn">다시 하기</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   TW UI KIT — 재사용 가능한 모듈 (다른 게임에도 그대로 이식 가능)
+   ========================================================= */
+const TW = {
+  TTS: {
+    speak(text){
+      if (window.TW_TTS && typeof window.TW_TTS.speak === 'function') {
+        window.TW_TTS.speak(text);
+      } else {
+        console.log('[TTS]', text); // 플랫폼 밖 테스트용 폴백
+      }
+    }
+  },
+  Banner: {
+    set(text, level='ok'){
+      document.getElementById('statusText').textContent = text;
+      const dot = document.getElementById('statusDot');
+      dot.className = 'tw-dot' + (level==='warn'?' warn':level==='bad'?' bad':'');
+    }
+  },
+  Hud: {
+    update({score, combo, lives}){
+      if (score!=null) document.getElementById('score').textContent = score;
+      if (combo!=null) document.getElementById('combo').textContent = combo;
+      if (lives!=null) document.getElementById('livesLeft').textContent = lives;
+    }
+  },
+  Modal: {
+    show(text){
+      document.getElementById('resultText').textContent = text;
+      document.getElementById('resultModal').classList.remove('tw-hidden');
+    },
+    hide(){ document.getElementById('resultModal').classList.add('tw-hidden'); }
+  },
+  Screen: {
+    show(id){
+      ['lobby','game'].forEach(s => document.getElementById(s).classList.toggle('tw-hidden', s!==id));
+    }
+  }
+};
+
+/* =========================================================
+   GAME LOGIC — 닷 두더지 잡기 (위 모듈만 사용해서 구현)
+   ========================================================= */
+const COLS = 5, ROWS = 4;
+let cells = [], cursor = {x:0,y:0}, moleIndex = -1;
+let score = 0, combo = 0, lives = 5, spawnTimer = null, moleTimeout = null;
+let speedMs = 1400, running = false;
+
+function buildBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  cells = [];
+  for (let i=0;i<COLS*ROWS;i++){
+    const c = document.createElement('div');
+    c.className = 'tw-cell';
+    board.appendChild(c);
+    cells.push(c);
+  }
+  renderCursor();
+}
+function idx(x,y){ return y*COLS+x; }
+function renderCursor(){
+  cells.forEach(c=>c.classList.remove('cursor'));
+  cells[idx(cursor.x,cursor.y)].classList.add('cursor');
+}
+function spawnMole(){
+  if (moleIndex>=0) cells[moleIndex].classList.remove('mole');
+  moleIndex = Math.floor(Math.random()*cells.length);
+  cells[moleIndex].classList.add('mole');
+  TW.Banner.set('두더지가 나타났어요! 빨리 잡으세요', 'warn');
+  TW.TTS.speak('두더지 등장');
+  clearTimeout(moleTimeout);
+  moleTimeout = setTimeout(missMole, speedMs);
+}
+function missMole(){
+  if (moleIndex<0) return;
+  cells[moleIndex].classList.add('miss');
+  setTimeout(()=>cells[moleIndex] && cells[moleIndex].classList.remove('miss','mole'), 250);
+  moleIndex = -1; combo = 0; lives--;
+  TW.Hud.update({combo, lives});
+  TW.TTS.speak('놓쳤습니다');
+  if (lives<=0) return endGame();
+  spawnTimer = setTimeout(spawnMole, 500);
+}
+function tryWhack(){
+  if (moleIndex<0) return;
+  if (idx(cursor.x,cursor.y) === moleIndex){
+    clearTimeout(moleTimeout);
+    cells[moleIndex].classList.remove('mole');
+    cells[moleIndex].classList.add('hit');
+    setTimeout(()=>cells[moleIndex] && cells[moleIndex].classList.remove('hit'), 200);
+    score += 10 + combo*2; combo++;
+    speedMs = Math.max(600, speedMs - 30);
+    TW.Hud.update({score, combo});
+    TW.Banner.set('명중! 다음 두더지를 기다리세요', 'ok');
+    TW.TTS.speak('명중, 점수 ' + score);
+    moleIndex = -1;
+    spawnTimer = setTimeout(spawnMole, 400);
+  }
+}
+function endGame(){
+  running = false;
+  clearTimeout(spawnTimer); clearTimeout(moleTimeout);
+  TW.Banner.set('게임 종료', 'bad');
+  TW.TTS.speak('게임 종료, 최종 점수 ' + score);
+  TW.Modal.show(`최종 점수: ${score} (최고 콤보 ${combo})`);
+}
+function startGame(){
+  const diff = document.getElementById('difficulty').value;
+  speedMs = diff==='easy' ? 1800 : diff==='hard' ? 1000 : 1400;
+  lives = parseInt(document.getElementById('lives').value,10);
+  score = 0; combo = 0; running = true;
+  TW.Screen.show('game');
+  TW.Hud.update({score, combo, lives});
+  buildBoard();
+  TW.Banner.set('게임 시작! 방향키로 이동하세요', 'ok');
+  spawnTimer = setTimeout(spawnMole, 800);
+}
+
+/* ===== TWInput 모듈: 방향키 / Enter·Space / F1~F4 표준 규칙 ===== */
+document.addEventListener('keydown', (e)=>{
+  if (!running) return;
+  switch(e.key){
+    case 'ArrowLeft':  cursor.x = Math.max(0, cursor.x-1); renderCursor(); break;
+    case 'ArrowRight': cursor.x = Math.min(COLS-1, cursor.x+1); renderCursor(); break;
+    case 'ArrowUp':    cursor.y = Math.max(0, cursor.y-1); renderCursor(); break;
+    case 'ArrowDown':  cursor.y = Math.min(ROWS-1, cursor.y+1); renderCursor(); break;
+    case 'Enter': case ' ': e.preventDefault(); tryWhack(); break;
+    case 'n': case 'N': startGame(); break;
+  }
+});
+
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('newGameBtn').onclick = startGame;
+document.getElementById('retryBtn').onclick = ()=>{ TW.Modal.hide(); startGame(); };
+document.getElementById('voiceBtn').onclick = ()=> TW.TTS.speak(`현재 점수 ${score}, 생명 ${lives}`);
+document.getElementById('helpBtn').onclick = ()=> TW.TTS.speak('방향키로 이동하고 엔터로 두더지를 잡으세요');
+document.getElementById('dotpadBtn').onclick = ()=> alert('실제 배포 시 DotPad SDK(Web Bluetooth) 연동 지점입니다.');
+
+/* ===== embed 모드 대응 (플랫폼 개발 가이드 규칙) ===== */
+if (new URLSearchParams(location.search).get('embed') === '1'){
+  document.body.style.background = 'transparent';
+}
+</script>
+</body>
+</html>
