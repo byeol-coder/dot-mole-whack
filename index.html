@@ -1,259 +1,920 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>닷 두더지 잡기 - Dot Mole Whack</title>
-<style>
-  :root{
-    --tw-bg:#0b0f14; --tw-panel:#111826; --tw-accent:#ff7a30;
-    --tw-line:#2a3a4d; --tw-text:#eef2f6; --tw-sub:#9fb0c0;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--tw-bg);color:var(--tw-text);
-    font-family:'Apple SD Gothic Neo',system-ui,sans-serif;}
-  .tw-screen{max-width:520px;margin:0 auto;padding:16px;}
-  .tw-hidden{display:none !important;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <title>닷 두더지 잡기 | Dot Mole Whack</title>
+  <script src="https://dot-games-host.vercel.app/tts.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08111f;
+      --panel: #101c2d;
+      --panel-strong: #17263a;
+      --line: #33465e;
+      --text: #f7fafc;
+      --sub: #b9c6d6;
+      --accent: #ff8a3d;
+      --accent-strong: #ff6b1a;
+      --focus: #77c7ff;
+      --good: #42d392;
+      --warn: #ffd166;
+      --bad: #ff6b6b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .34);
+    }
 
-  /* ===== TWLobby ===== */
-  .tw-lobby{text-align:center;padding-top:24px;}
-  .tw-logo{font-size:32px;font-weight:800;letter-spacing:1px;}
-  .tw-sub{color:var(--tw-sub);margin-top:4px;}
-  .tw-field-row{display:flex;gap:8px;justify-content:center;margin:16px 0;}
-  .tw-select{background:var(--tw-panel);border:1px solid var(--tw-line);
-    color:var(--tw-text);padding:10px 14px;border-radius:10px;}
-  .tw-cta{background:var(--tw-accent);color:#fff;border:none;border-radius:14px;
-    padding:14px 24px;font-size:18px;font-weight:700;cursor:pointer;width:100%;max-width:320px;}
+    * { box-sizing: border-box; }
 
-  /* ===== TWStatusBanner ===== */
-  .tw-banner{display:flex;align-items:center;gap:8px;background:var(--tw-panel);
-    border:1px solid var(--tw-line);border-radius:12px;padding:10px 14px;margin-bottom:12px;}
-  .tw-dot{width:10px;height:10px;border-radius:50%;background:#2ecc71;flex:0 0 auto;}
-  .tw-dot.warn{background:#f1c40f;} .tw-dot.bad{background:#e74c3c;}
+    html, body { min-height: 100%; }
 
-  /* ===== TWHud ===== */
-  .tw-hud{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-  .tw-chip{background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:20px;
-    padding:6px 12px;font-size:14px;}
-  .tw-chip b{color:var(--tw-accent);}
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -20%, rgba(45, 113, 170, .28), transparent 48%),
+        linear-gradient(180deg, #0b1727 0%, var(--bg) 65%);
+      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+    }
 
-  /* ===== TWGridBoard ===== */
-  .tw-board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
-    background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:14px;padding:12px;}
-  .tw-cell{aspect-ratio:1;border-radius:10px;background:#1a2332;border:2px solid var(--tw-line);
-    display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .1s;}
-  .tw-cell.cursor{outline:3px solid #4aa3ff;}
-  .tw-cell.mole{background:#3d2b12;border-color:var(--tw-accent);}
-  .tw-cell.hit{background:#1f6e3d;border-color:#2ecc71;}
-  .tw-cell.miss{background:#5a1f1f;border-color:#e74c3c;}
+    button, select { font: inherit; }
 
-  /* ===== TWControlBar ===== */
-  .tw-controlbar{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
-  .tw-icon-btn{background:var(--tw-panel);border:1px solid var(--tw-line);color:var(--tw-text);
-    border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;}
-  .tw-keyhint{text-align:center;color:var(--tw-sub);font-size:12px;margin-top:6px;}
+    button { touch-action: manipulation; }
 
-  /* ===== TWResultModal ===== */
-  .tw-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);
-    display:flex;align-items:center;justify-content:center;}
-  .tw-modal{background:var(--tw-panel);border:1px solid var(--tw-line);border-radius:16px;
-    padding:24px;text-align:center;width:90%;max-width:340px;}
-  .tw-modal h2{margin-top:0;}
-</style>
+    button:focus-visible,
+    select:focus-visible {
+      outline: 4px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .hidden { display: none !important; }
+
+    .app {
+      width: min(100%, 760px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: clamp(16px, 3vw, 28px);
+      display: grid;
+      align-items: center;
+    }
+
+    .screen {
+      width: 100%;
+      padding: clamp(20px, 4vw, 36px);
+      border: 1px solid rgba(135, 163, 194, .26);
+      border-radius: 28px;
+      background: rgba(12, 25, 42, .92);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: clamp(2rem, 7vw, 3.6rem);
+      line-height: 1.06;
+      letter-spacing: -.045em;
+    }
+
+    .lead {
+      max-width: 38rem;
+      margin-bottom: 28px;
+      color: var(--sub);
+      font-size: clamp(1rem, 2.4vw, 1.14rem);
+      line-height: 1.7;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--sub);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    select {
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    .primary,
+    .secondary,
+    .tool-button {
+      min-height: 48px;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, .18);
+      color: #17100a;
+      background: linear-gradient(180deg, #ffac6f, var(--accent));
+      box-shadow: 0 10px 30px rgba(255, 122, 48, .24);
+    }
+
+    .primary:hover { background: linear-gradient(180deg, #ffc092, #ff914d); }
+
+    .secondary,
+    .tool-button {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    .secondary:hover,
+    .tool-button:hover { background: var(--panel-strong); }
+
+    .key-help {
+      margin: 18px 0 0;
+      color: var(--sub);
+      font-size: .84rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .game-screen { padding: clamp(14px, 3vw, 24px); }
+
+    .status-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 50px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      line-height: 1.45;
+    }
+
+    .status-dot {
+      width: 11px;
+      height: 11px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--good);
+      box-shadow: 0 0 0 4px rgba(66, 211, 146, .12);
+    }
+
+    .status-dot.warn { background: var(--warn); box-shadow: 0 0 0 4px rgba(255, 209, 102, .12); }
+    .status-dot.bad { background: var(--bad); box-shadow: 0 0 0 4px rgba(255, 107, 107, .12); }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .hud-item {
+      min-width: 0;
+      padding: 9px 8px;
+      border: 1px solid rgba(119, 151, 184, .22);
+      border-radius: 12px;
+      color: var(--sub);
+      background: rgba(16, 28, 45, .72);
+      font-size: .78rem;
+      text-align: center;
+    }
+
+    .hud-item strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--text);
+      font-size: 1.05rem;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(6px, 1.5vw, 10px);
+      width: 100%;
+      padding: clamp(10px, 2vw, 16px);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(5, 14, 25, .86);
+    }
+
+    .cell {
+      position: relative;
+      aspect-ratio: 1;
+      min-width: 0;
+      border: 2px solid #2b4057;
+      border-radius: clamp(9px, 2vw, 15px);
+      color: var(--text);
+      background: linear-gradient(180deg, #182a3f, #111e2e);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .cell::after {
+      content: "";
+      position: absolute;
+      inset: 28%;
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(.5);
+      transition: opacity .14s ease, transform .14s ease;
+    }
+
+    .cell.cursor {
+      border-color: var(--focus);
+      box-shadow: inset 0 0 0 2px rgba(119, 199, 255, .18), 0 0 0 2px rgba(119, 199, 255, .18);
+    }
+
+    .cell.mole {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, #4c2d19, #2c1b13);
+    }
+
+    .cell.mole::after {
+      opacity: 1;
+      transform: scale(1);
+      background: radial-gradient(circle at 38% 34%, #fff0dc 0 8%, #ff9e5c 9% 36%, #9a461e 37% 100%);
+      box-shadow: 0 0 24px rgba(255, 138, 61, .38);
+    }
+
+    .cell.hit { border-color: var(--good); background: #16442f; }
+    .cell.miss { border-color: var(--bad); background: #4a2027; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tool-button {
+      padding: 8px 10px;
+      font-size: .86rem;
+      line-height: 1.25;
+    }
+
+    .tool-button[aria-pressed="true"],
+    .tool-button.connected {
+      border-color: var(--good);
+      background: #123b2b;
+    }
+
+    dialog {
+      width: min(calc(100% - 32px), 430px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      color: var(--text);
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop { background: rgba(0, 5, 12, .76); backdrop-filter: blur(5px); }
+
+    .dialog-body { padding: 26px; }
+    .dialog-body h2 { margin-bottom: 12px; font-size: 1.6rem; }
+    .dialog-body p, .dialog-body li { color: var(--sub); line-height: 1.65; }
+    .dialog-actions { display: grid; gap: 8px; margin-top: 20px; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body.embed { background: transparent; }
+    body.embed .app { min-height: 100dvh; padding: 8px; }
+    body.embed .screen { border-radius: 18px; box-shadow: none; }
+
+    @media (max-width: 560px) {
+      .app { padding: 10px; align-items: start; }
+      .screen { border-radius: 20px; }
+      .settings { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: repeat(4, 1fr); }
+      .hud-item { padding-inline: 3px; font-size: .7rem; }
+      .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-height: 700px) and (min-width: 561px) {
+      .app { align-items: start; padding-block: 8px; }
+      .game-screen { padding: 12px; }
+      .cell { max-height: 82px; }
+      .board { justify-content: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
 </head>
 <body>
+  <main class="app" id="app">
+    <section class="screen" id="lobby" aria-labelledby="gameTitle">
+      <p class="eyebrow">Accessible tactile action</p>
+      <h1 id="gameTitle">닷 두더지 잡기</h1>
+      <p class="lead">나타난 두더지를 화면·키보드·닷패드로 빠르게 찾아보세요. 놓치지 않고 연속으로 잡으면 더 높은 점수를 얻습니다.</p>
 
-<!-- ===== 1) TWLobby 모듈 ===== -->
-<div id="lobby" class="tw-screen tw-lobby">
-  <div class="tw-logo">🐹 닷 두더지 잡기</div>
-  <div class="tw-sub">튀어나온 두더지를 손끝 반응속도로 잡아보세요</div>
-  <div class="tw-field-row">
-    <select id="difficulty" class="tw-select">
-      <option value="easy">쉬움</option>
-      <option value="normal" selected>보통</option>
-      <option value="hard">어려움</option>
-    </select>
-    <select id="lives" class="tw-select">
-      <option value="3">생명 3</option>
-      <option value="5" selected>생명 5</option>
-    </select>
-  </div>
-  <button class="tw-cta" id="startBtn">▶ 새 게임</button>
-  <div class="tw-keyhint">방향키 이동 · Enter/Space 잡기 · N 새 게임 · H 도움말</div>
-</div>
+      <div class="settings">
+        <label for="difficulty">난이도
+          <select id="difficulty">
+            <option value="easy">쉬움 · 1.8초</option>
+            <option value="normal" selected>보통 · 1.4초</option>
+            <option value="hard">어려움 · 1.0초</option>
+          </select>
+        </label>
+        <label for="lives">시작 생명
+          <select id="lives">
+            <option value="3">생명 3개</option>
+            <option value="5" selected>생명 5개</option>
+          </select>
+        </label>
+      </div>
 
-<!-- ===== 2) 인게임 화면 (Banner + Hud + Board + ControlBar) ===== -->
-<div id="game" class="tw-screen tw-hidden">
-  <div class="tw-banner"><span class="tw-dot" id="statusDot"></span><span id="statusText">두더지를 잡을 준비를 하세요!</span></div>
-  <div class="tw-hud">
-    <div class="tw-chip">점수 <b id="score">0</b></div>
-    <div class="tw-chip">콤보 <b id="combo">0</b></div>
-    <div class="tw-chip">생명 <b id="livesLeft">5</b></div>
-  </div>
-  <div class="tw-board" id="board"></div>
-  <div class="tw-controlbar">
-    <button class="tw-icon-btn" id="helpBtn">❓ 도움말</button>
-    <button class="tw-icon-btn" id="voiceBtn">🔊 현황 듣기</button>
-    <button class="tw-icon-btn" id="dotpadBtn">📶 닷패드 연결</button>
-    <button class="tw-icon-btn" id="newGameBtn">🔄 새 게임</button>
-  </div>
-  <div class="tw-keyhint">방향키 이동 · Enter/Space 잡기 · F1~F4 닷패드 동작키</div>
-</div>
+      <button class="primary" id="startBtn" type="button">게임 시작</button>
+      <p class="key-help">방향키 이동 · Enter/Space 잡기 · H 도움말 · R 현황 듣기 · N 새 게임</p>
+    </section>
 
-<!-- ===== 3) TWResultModal 모듈 ===== -->
-<div id="resultModal" class="tw-modal-backdrop tw-hidden">
-  <div class="tw-modal">
-    <h2>게임 종료</h2>
-    <p id="resultText">최종 점수: 0 (최고 콤보 0)</p>
-    <button class="tw-cta" id="retryBtn">다시 하기</button>
-  </div>
-</div>
+    <section class="screen game-screen hidden" id="game" aria-label="닷 두더지 잡기 플레이 화면">
+      <div class="status-banner" role="status" aria-live="polite" aria-atomic="true">
+        <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+        <span id="statusText">게임을 준비하고 있습니다.</span>
+      </div>
 
-<script>
-/* =========================================================
-   TW UI KIT — 재사용 가능한 모듈 (다른 게임에도 그대로 이식 가능)
-   ========================================================= */
-const TW = {
-  TTS: {
-    speak(text){
-      if (window.TW_TTS && typeof window.TW_TTS.speak === 'function') {
-        window.TW_TTS.speak(text);
-      } else {
-        console.log('[TTS]', text); // 플랫폼 밖 테스트용 폴백
+      <div class="hud" aria-label="게임 현황">
+        <div class="hud-item">점수<strong id="score">0</strong></div>
+        <div class="hud-item">콤보<strong id="combo">0</strong></div>
+        <div class="hud-item">최고 콤보<strong id="bestCombo">0</strong></div>
+        <div class="hud-item">생명<strong id="livesLeft">5</strong></div>
+      </div>
+
+      <div class="board" id="board" role="grid" aria-label="5열 4행 두더지 보드" aria-rowcount="4" aria-colcount="5"></div>
+
+      <div class="controls" aria-label="게임 제어">
+        <button class="tool-button" id="helpBtn" type="button">도움말</button>
+        <button class="tool-button" id="repeatBtn" type="button">현황 듣기</button>
+        <button class="tool-button" id="soundBtn" type="button" aria-pressed="true">음성 켜짐</button>
+        <button class="tool-button" id="dotpadBtn" type="button">닷패드 연결</button>
+        <button class="tool-button" id="newGameBtn" type="button">새 게임</button>
+        <button class="tool-button" id="lobbyBtn" type="button">로비로</button>
+      </div>
+      <p class="key-help">닷패드 F1/F2: 좌우 · F3/F4: 위아래 · 전체 패닝키: 잡기</p>
+    </section>
+  </main>
+
+  <dialog id="helpDialog" aria-labelledby="helpTitle">
+    <div class="dialog-body">
+      <h2 id="helpTitle">게임 방법</h2>
+      <ul>
+        <li>방향키 또는 닷패드 기능키로 커서를 움직입니다.</li>
+        <li>두더지 위치에서 Enter, Space 또는 전체 패닝키를 누릅니다.</li>
+        <li>화면에서는 두더지가 나타난 칸을 직접 눌러도 됩니다.</li>
+        <li>놓치면 생명이 하나 줄고, 생명이 0이 되면 종료됩니다.</li>
+      </ul>
+      <div class="dialog-actions">
+        <button class="primary" id="closeHelpBtn" type="button">게임으로 돌아가기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="resultDialog" aria-labelledby="resultTitle">
+    <div class="dialog-body">
+      <p class="eyebrow">Game complete</p>
+      <h2 id="resultTitle">게임 종료</h2>
+      <p id="resultText">최종 점수 0점</p>
+      <div class="dialog-actions">
+        <button class="primary" id="retryBtn" type="button">다시 하기</button>
+        <button class="secondary" id="resultLobbyBtn" type="button">로비로</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="sr-only" id="assertiveStatus" role="alert" aria-live="assertive"></div>
+
+  <script type="module">
+    const SDK_URL = 'https://tactileworlds.com/superdot/DotPadSDK-3.0.0.js';
+    const COLS = 5;
+    const ROWS = 4;
+
+    const $ = (id) => document.getElementById(id);
+    const elements = {
+      lobby: $('lobby'), game: $('game'), board: $('board'),
+      statusText: $('statusText'), statusDot: $('statusDot'), assertive: $('assertiveStatus'),
+      score: $('score'), combo: $('combo'), bestCombo: $('bestCombo'), lives: $('livesLeft'),
+      start: $('startBtn'), newGame: $('newGameBtn'), lobbyBtn: $('lobbyBtn'),
+      help: $('helpBtn'), repeat: $('repeatBtn'), sound: $('soundBtn'), dotpad: $('dotpadBtn'),
+      helpDialog: $('helpDialog'), closeHelp: $('closeHelpBtn'),
+      resultDialog: $('resultDialog'), resultText: $('resultText'), retry: $('retryBtn'), resultLobby: $('resultLobbyBtn')
+    };
+
+    const TW = {
+      TTS: {
+        enabled: true,
+        ready() { return Boolean(window.TW_TTS); },
+        speak(text, options) {
+          if (!this.enabled) return;
+          if (window.TW_TTS?.speak) {
+            window.TW_TTS.speak(text, options);
+            return;
+          }
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            window.speechSynthesis.speak(utterance);
+          }
+        },
+        stop() {
+          window.TW_TTS?.stop?.();
+          window.speechSynthesis?.cancel?.();
+        },
+        setLang(language) { window.TW_TTS?.setLang?.(language); },
+        setEnabled(enabled) {
+          this.enabled = enabled;
+          window.TW_TTS?.setEnabled?.(enabled);
+        }
+      },
+      Banner: {
+        set(text, level = 'ok', assertive = false) {
+          elements.statusText.textContent = text;
+          elements.statusDot.className = `status-dot${level === 'warn' ? ' warn' : level === 'bad' ? ' bad' : ''}`;
+          if (assertive) {
+            elements.assertive.textContent = '';
+            requestAnimationFrame(() => { elements.assertive.textContent = text; });
+          }
+        }
+      },
+      post(type, detail = {}) {
+        if (window.parent !== window) window.parent.postMessage({ source: 'dot-mole-whack', type, ...detail }, '*');
       }
-    }
-  },
-  Banner: {
-    set(text, level='ok'){
-      document.getElementById('statusText').textContent = text;
-      const dot = document.getElementById('statusDot');
-      dot.className = 'tw-dot' + (level==='warn'?' warn':level==='bad'?' bad':'');
-    }
-  },
-  Hud: {
-    update({score, combo, lives}){
-      if (score!=null) document.getElementById('score').textContent = score;
-      if (combo!=null) document.getElementById('combo').textContent = combo;
-      if (lives!=null) document.getElementById('livesLeft').textContent = lives;
-    }
-  },
-  Modal: {
-    show(text){
-      document.getElementById('resultText').textContent = text;
-      document.getElementById('resultModal').classList.remove('tw-hidden');
-    },
-    hide(){ document.getElementById('resultModal').classList.add('tw-hidden'); }
-  },
-  Screen: {
-    show(id){
-      ['lobby','game'].forEach(s => document.getElementById(s).classList.toggle('tw-hidden', s!==id));
-    }
-  }
-};
+    };
 
-/* =========================================================
-   GAME LOGIC — 닷 두더지 잡기 (위 모듈만 사용해서 구현)
-   ========================================================= */
-const COLS = 5, ROWS = 4;
-let cells = [], cursor = {x:0,y:0}, moleIndex = -1;
-let score = 0, combo = 0, lives = 5, spawnTimer = null, moleTimeout = null;
-let speedMs = 1400, running = false;
+    window.TW = TW;
 
-function buildBoard(){
-  const board = document.getElementById('board');
-  board.innerHTML = '';
-  cells = [];
-  for (let i=0;i<COLS*ROWS;i++){
-    const c = document.createElement('div');
-    c.className = 'tw-cell';
-    board.appendChild(c);
-    cells.push(c);
-  }
-  renderCursor();
-}
-function idx(x,y){ return y*COLS+x; }
-function renderCursor(){
-  cells.forEach(c=>c.classList.remove('cursor'));
-  cells[idx(cursor.x,cursor.y)].classList.add('cursor');
-}
-function spawnMole(){
-  if (moleIndex>=0) cells[moleIndex].classList.remove('mole');
-  moleIndex = Math.floor(Math.random()*cells.length);
-  cells[moleIndex].classList.add('mole');
-  TW.Banner.set('두더지가 나타났어요! 빨리 잡으세요', 'warn');
-  TW.TTS.speak('두더지 등장');
-  clearTimeout(moleTimeout);
-  moleTimeout = setTimeout(missMole, speedMs);
-}
-function missMole(){
-  if (moleIndex<0) return;
-  cells[moleIndex].classList.add('miss');
-  setTimeout(()=>cells[moleIndex] && cells[moleIndex].classList.remove('miss','mole'), 250);
-  moleIndex = -1; combo = 0; lives--;
-  TW.Hud.update({combo, lives});
-  TW.TTS.speak('놓쳤습니다');
-  if (lives<=0) return endGame();
-  spawnTimer = setTimeout(spawnMole, 500);
-}
-function tryWhack(){
-  if (moleIndex<0) return;
-  if (idx(cursor.x,cursor.y) === moleIndex){
-    clearTimeout(moleTimeout);
-    cells[moleIndex].classList.remove('mole');
-    cells[moleIndex].classList.add('hit');
-    setTimeout(()=>cells[moleIndex] && cells[moleIndex].classList.remove('hit'), 200);
-    score += 10 + combo*2; combo++;
-    speedMs = Math.max(600, speedMs - 30);
-    TW.Hud.update({score, combo});
-    TW.Banner.set('명중! 다음 두더지를 기다리세요', 'ok');
-    TW.TTS.speak('명중, 점수 ' + score);
-    moleIndex = -1;
-    spawnTimer = setTimeout(spawnMole, 400);
-  }
-}
-function endGame(){
-  running = false;
-  clearTimeout(spawnTimer); clearTimeout(moleTimeout);
-  TW.Banner.set('게임 종료', 'bad');
-  TW.TTS.speak('게임 종료, 최종 점수 ' + score);
-  TW.Modal.show(`최종 점수: ${score} (최고 콤보 ${combo})`);
-}
-function startGame(){
-  const diff = document.getElementById('difficulty').value;
-  speedMs = diff==='easy' ? 1800 : diff==='hard' ? 1000 : 1400;
-  lives = parseInt(document.getElementById('lives').value,10);
-  score = 0; combo = 0; running = true;
-  TW.Screen.show('game');
-  TW.Hud.update({score, combo, lives});
-  buildBoard();
-  TW.Banner.set('게임 시작! 방향키로 이동하세요', 'ok');
-  spawnTimer = setTimeout(spawnMole, 800);
-}
+    const DotPad = {
+      module: null,
+      scanner: null,
+      sdk: null,
+      device: null,
+      connecting: false,
 
-/* ===== TWInput 모듈: 방향키 / Enter·Space / F1~F4 표준 규칙 ===== */
-document.addEventListener('keydown', (e)=>{
-  if (!running) return;
-  switch(e.key){
-    case 'ArrowLeft':  cursor.x = Math.max(0, cursor.x-1); renderCursor(); break;
-    case 'ArrowRight': cursor.x = Math.min(COLS-1, cursor.x+1); renderCursor(); break;
-    case 'ArrowUp':    cursor.y = Math.max(0, cursor.y-1); renderCursor(); break;
-    case 'ArrowDown':  cursor.y = Math.min(ROWS-1, cursor.y+1); renderCursor(); break;
-    case 'Enter': case ' ': e.preventDefault(); tryWhack(); break;
-    case 'n': case 'N': startGame(); break;
-  }
-});
+      async load() {
+        if (this.module) return this.module;
+        this.module = await import(SDK_URL);
+        this.scanner = new this.module.DotPadScanner();
+        this.sdk = new this.module.DotPadSDK();
+        this.sdk.setCallBack(
+          (device, code) => {
+            if (code === this.module.DataCodes.Connected) {
+              this.device = device;
+              elements.dotpad.classList.add('connected');
+              elements.dotpad.textContent = '닷패드 연결됨';
+              TW.Banner.set('닷패드가 연결되었습니다. 손끝으로 보드를 확인하세요.', 'ok', true);
+              Game.renderTactile();
+            }
+            if (code === this.module.DataCodes.Disconnected) {
+              this.device = null;
+              elements.dotpad.classList.remove('connected');
+              elements.dotpad.textContent = '닷패드 연결';
+              TW.Banner.set('닷패드 연결이 끊겼습니다. 화면과 키보드로 계속할 수 있습니다.', 'warn', true);
+            }
+          },
+          (_device, key) => {
+            const K = this.module.KeyCodes;
+            const actions = {
+              [K.KeyFunction1]: () => Game.move(-1, 0),
+              [K.KeyFunction2]: () => Game.move(1, 0),
+              [K.KeyFunction3]: () => Game.move(0, -1),
+              [K.KeyFunction4]: () => Game.move(0, 1),
+              [K.PanningLeft]: () => Game.move(-1, 0),
+              [K.PanningRight]: () => Game.move(1, 0),
+              [K.PanningAll]: () => Game.confirm()
+            };
+            actions[key]?.();
+          }
+        );
+        return this.module;
+      },
 
-document.getElementById('startBtn').onclick = startGame;
-document.getElementById('newGameBtn').onclick = startGame;
-document.getElementById('retryBtn').onclick = ()=>{ TW.Modal.hide(); startGame(); };
-document.getElementById('voiceBtn').onclick = ()=> TW.TTS.speak(`현재 점수 ${score}, 생명 ${lives}`);
-document.getElementById('helpBtn').onclick = ()=> TW.TTS.speak('방향키로 이동하고 엔터로 두더지를 잡으세요');
-document.getElementById('dotpadBtn').onclick = ()=> alert('실제 배포 시 DotPad SDK(Web Bluetooth) 연동 지점입니다.');
+      async connect() {
+        if (this.connecting) return false;
+        if (this.device) {
+          await this.disconnect();
+          return false;
+        }
+        if (!navigator.bluetooth) throw new Error('Web Bluetooth를 지원하는 Chrome 또는 Edge가 필요합니다.');
+        this.connecting = true;
+        elements.dotpad.disabled = true;
+        elements.dotpad.textContent = '기기 찾는 중…';
+        try {
+          await this.load();
+          const bluetoothDevice = await this.scanner.startBleScan();
+          if (!bluetoothDevice) return false;
+          this.device = await this.sdk.connectBleDevice(bluetoothDevice);
+          if (this.device) {
+            elements.dotpad.classList.add('connected');
+            elements.dotpad.textContent = '닷패드 연결됨';
+            this.render(Game.tactileState());
+          }
+          return Boolean(this.device);
+        } finally {
+          this.connecting = false;
+          elements.dotpad.disabled = false;
+          if (!this.device) elements.dotpad.textContent = '닷패드 연결';
+        }
+      },
 
-/* ===== embed 모드 대응 (플랫폼 개발 가이드 규칙) ===== */
-if (new URLSearchParams(location.search).get('embed') === '1'){
-  document.body.style.background = 'transparent';
-}
-</script>
+      async disconnect() {
+        if (this.sdk && this.device) {
+          try { this.sdk.displayAllDown(this.device); } catch (_) {}
+          try { this.sdk.disconnect(this.device); } catch (_) {}
+        }
+        this.device = null;
+        elements.dotpad.classList.remove('connected');
+        elements.dotpad.textContent = '닷패드 연결';
+      },
+
+      encodePins(pinRows, width, height) {
+        const cellColumns = Math.ceil(width / 2);
+        const cellRows = Math.ceil(height / 4);
+        let hex = '';
+        for (let cellY = 0; cellY < cellRows; cellY += 1) {
+          for (let cellX = 0; cellX < cellColumns; cellX += 1) {
+            let value = 0;
+            for (let localX = 0; localX < 2; localX += 1) {
+              for (let localY = 0; localY < 4; localY += 1) {
+                const x = cellX * 2 + localX;
+                const y = cellY * 4 + localY;
+                if (x < width && y < height && pinRows[y][x]) value |= 1 << (localX * 4 + localY);
+              }
+            }
+            hex += value.toString(16).padStart(2, '0').toUpperCase();
+          }
+        }
+        return hex;
+      },
+
+      render(state) {
+        if (!this.device || !this.sdk) return;
+        const width = Math.max(10, (this.device.numberCellColumns || 30) * 2);
+        const height = Math.max(8, (this.device.numberCellRows || 10) * 4);
+        const pins = Array.from({ length: height }, () => Array(width).fill(false));
+        const cellWidth = width / COLS;
+        const cellHeight = height / ROWS;
+        const setPin = (x, y, on = true) => {
+          const px = Math.round(x);
+          const py = Math.round(y);
+          if (px >= 0 && px < width && py >= 0 && py < height) pins[py][px] = on;
+        };
+
+        for (let row = 0; row < ROWS; row += 1) {
+          for (let col = 0; col < COLS; col += 1) {
+            const x0 = Math.floor(col * cellWidth);
+            const x1 = Math.max(x0 + 2, Math.floor((col + 1) * cellWidth) - 1);
+            const y0 = Math.floor(row * cellHeight);
+            const y1 = Math.max(y0 + 2, Math.floor((row + 1) * cellHeight) - 1);
+            setPin(x0 + 1, y0 + 1);
+            setPin(x1 - 1, y0 + 1);
+
+            const index = row * COLS + col;
+            if (index === state.cursorIndex) {
+              for (let x = x0 + 2; x <= x1 - 2; x += 1) {
+                setPin(x, y0 + 1);
+                setPin(x, y1 - 1);
+              }
+              for (let y = y0 + 1; y <= y1 - 1; y += 1) {
+                setPin(x0 + 1, y);
+                setPin(x1 - 1, y);
+              }
+            }
+            if (index === state.moleIndex) {
+              const cx = Math.floor((x0 + x1) / 2);
+              const cy = Math.floor((y0 + y1) / 2);
+              for (let delta = -2; delta <= 2; delta += 1) {
+                setPin(cx + delta, cy);
+                setPin(cx, cy + delta);
+              }
+              setPin(cx - 1, cy - 1);
+              setPin(cx + 1, cy - 1);
+              setPin(cx - 1, cy + 1);
+              setPin(cx + 1, cy + 1);
+            }
+          }
+        }
+
+        const hex = this.encodePins(pins, width, height);
+        this.sdk.displayGraphicData(hex, this.device, this.module.DisplayMode.GraphicMode);
+      }
+    };
+
+    window.TWDotPad = DotPad;
+
+    const Game = {
+      cells: [],
+      cursorIndex: 0,
+      moleIndex: -1,
+      score: 0,
+      combo: 0,
+      bestCombo: 0,
+      lives: 5,
+      speed: 1400,
+      running: false,
+      spawnTimer: null,
+      moleTimer: null,
+
+      buildBoard() {
+        elements.board.replaceChildren();
+        this.cells = [];
+        for (let index = 0; index < COLS * ROWS; index += 1) {
+          const row = Math.floor(index / COLS);
+          const col = index % COLS;
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'cell';
+          cell.setAttribute('role', 'gridcell');
+          cell.setAttribute('aria-rowindex', String(row + 1));
+          cell.setAttribute('aria-colindex', String(col + 1));
+          cell.dataset.index = String(index);
+          cell.addEventListener('click', () => {
+            if (!this.running) return;
+            this.cursorIndex = index;
+            this.render();
+            this.confirm();
+          });
+          elements.board.appendChild(cell);
+          this.cells.push(cell);
+        }
+        this.render();
+      },
+
+      clearTimers() {
+        clearTimeout(this.spawnTimer);
+        clearTimeout(this.moleTimer);
+        this.spawnTimer = null;
+        this.moleTimer = null;
+      },
+
+      start() {
+        this.clearTimers();
+        TW.TTS.stop();
+        if (elements.resultDialog.open) elements.resultDialog.close();
+        this.score = 0;
+        this.combo = 0;
+        this.bestCombo = 0;
+        this.lives = Number($('lives').value);
+        this.speed = { easy: 1800, normal: 1400, hard: 1000 }[$('difficulty').value];
+        this.cursorIndex = 0;
+        this.moleIndex = -1;
+        this.running = true;
+        elements.lobby.classList.add('hidden');
+        elements.game.classList.remove('hidden');
+        this.updateHud();
+        this.buildBoard();
+        TW.Banner.set('게임 시작! 첫 두더지를 기다리세요.', 'ok');
+        TW.TTS.speak('게임 시작. 첫 두더지를 기다리세요.');
+        this.spawnTimer = setTimeout(() => this.spawn(), 800);
+        TW.post('game-start', { difficulty: $('difficulty').value });
+        requestAnimationFrame(() => this.cells[0]?.focus());
+      },
+
+      spawn() {
+        if (!this.running) return;
+        const previous = this.moleIndex;
+        let next = Math.floor(Math.random() * this.cells.length);
+        if (this.cells.length > 1 && next === previous) next = (next + 1 + Math.floor(Math.random() * (this.cells.length - 1))) % this.cells.length;
+        this.moleIndex = next;
+        this.render();
+        const position = this.positionText(next);
+        TW.Banner.set(`두더지 등장! ${position}`, 'warn');
+        TW.TTS.speak(`두더지, ${position}`);
+        clearTimeout(this.moleTimer);
+        this.moleTimer = setTimeout(() => this.miss(), this.speed);
+      },
+
+      miss() {
+        if (!this.running || this.moleIndex < 0) return;
+        const missedIndex = this.moleIndex;
+        this.moleIndex = -1;
+        this.combo = 0;
+        this.lives -= 1;
+        this.cells[missedIndex]?.classList.add('miss');
+        setTimeout(() => this.cells[missedIndex]?.classList.remove('miss'), 260);
+        this.updateHud();
+        this.render();
+        if (this.lives <= 0) {
+          this.end();
+          return;
+        }
+        TW.Banner.set(`놓쳤습니다. 남은 생명 ${this.lives}개`, 'bad', true);
+        TW.TTS.speak(`놓쳤습니다. 남은 생명 ${this.lives}개`);
+        this.spawnTimer = setTimeout(() => this.spawn(), 520);
+      },
+
+      confirm() {
+        if (!this.running) return;
+        if (this.moleIndex < 0) {
+          TW.Banner.set('아직 두더지가 없습니다. 잠시 기다리세요.', 'warn');
+          return;
+        }
+        if (this.cursorIndex !== this.moleIndex) {
+          this.combo = 0;
+          this.updateHud();
+          TW.Banner.set(`빈 칸입니다. 현재 커서는 ${this.positionText(this.cursorIndex)}`, 'warn');
+          TW.TTS.speak('빈 칸입니다.');
+          return;
+        }
+
+        clearTimeout(this.moleTimer);
+        const hitIndex = this.moleIndex;
+        this.moleIndex = -1;
+        this.score += 10 + this.combo * 2;
+        this.combo += 1;
+        this.bestCombo = Math.max(this.bestCombo, this.combo);
+        this.speed = Math.max(600, this.speed - 24);
+        this.cells[hitIndex]?.classList.add('hit');
+        setTimeout(() => this.cells[hitIndex]?.classList.remove('hit'), 220);
+        this.updateHud();
+        this.render();
+        TW.Banner.set(`명중! ${this.combo}콤보, 현재 ${this.score}점`, 'ok', true);
+        TW.TTS.speak(`명중. ${this.combo}콤보, ${this.score}점`);
+        this.spawnTimer = setTimeout(() => this.spawn(), 420);
+      },
+
+      move(deltaX, deltaY) {
+        if (!this.running) return;
+        const x = this.cursorIndex % COLS;
+        const y = Math.floor(this.cursorIndex / COLS);
+        const nextX = Math.max(0, Math.min(COLS - 1, x + deltaX));
+        const nextY = Math.max(0, Math.min(ROWS - 1, y + deltaY));
+        this.cursorIndex = nextY * COLS + nextX;
+        this.render();
+        this.cells[this.cursorIndex]?.focus({ preventScroll: true });
+        TW.TTS.speak(this.positionText(this.cursorIndex));
+      },
+
+      render() {
+        this.cells.forEach((cell, index) => {
+          const isCursor = index === this.cursorIndex;
+          const isMole = index === this.moleIndex;
+          cell.classList.toggle('cursor', isCursor);
+          cell.classList.toggle('mole', isMole);
+          cell.tabIndex = isCursor ? 0 : -1;
+          cell.setAttribute('aria-selected', String(isCursor));
+          cell.setAttribute('aria-label', `${this.positionText(index)}${isMole ? ', 두더지 있음' : ', 빈 칸'}${isCursor ? ', 현재 커서' : ''}`);
+        });
+        this.renderTactile();
+      },
+
+      tactileState() { return { cursorIndex: this.cursorIndex, moleIndex: this.moleIndex }; },
+      renderTactile() { DotPad.render(this.tactileState()); },
+
+      updateHud() {
+        elements.score.textContent = String(this.score);
+        elements.combo.textContent = String(this.combo);
+        elements.bestCombo.textContent = String(this.bestCombo);
+        elements.lives.textContent = String(this.lives);
+      },
+
+      positionText(index) {
+        return `${Math.floor(index / COLS) + 1}행 ${index % COLS + 1}열`;
+      },
+
+      speakStatus() {
+        TW.TTS.speak(`현재 점수 ${this.score}점, ${this.combo}콤보, 최고 ${this.bestCombo}콤보, 남은 생명 ${this.lives}개. 커서는 ${this.positionText(this.cursorIndex)}`);
+      },
+
+      end() {
+        this.running = false;
+        this.clearTimers();
+        this.moleIndex = -1;
+        this.render();
+        const summary = `최종 점수 ${this.score}점, 최고 콤보 ${this.bestCombo}회`;
+        TW.Banner.set('게임이 종료되었습니다.', 'bad', true);
+        elements.resultText.textContent = summary;
+        elements.resultDialog.showModal();
+        TW.TTS.speak(`게임 종료. ${summary}`);
+        TW.post('game-complete', { score: this.score, bestCombo: this.bestCombo });
+      },
+
+      toLobby() {
+        this.running = false;
+        this.clearTimers();
+        TW.TTS.stop();
+        if (elements.resultDialog.open) elements.resultDialog.close();
+        elements.game.classList.add('hidden');
+        elements.lobby.classList.remove('hidden');
+        elements.start.focus();
+        DotPad.render({ cursorIndex: -1, moleIndex: -1 });
+      }
+    };
+
+    window.TWGame = {
+      moveCursor: (dx, dy) => Game.move(dx, dy),
+      confirm: () => Game.confirm(),
+      start: () => Game.start()
+    };
+
+    elements.start.addEventListener('click', () => Game.start());
+    elements.newGame.addEventListener('click', () => Game.start());
+    elements.retry.addEventListener('click', () => Game.start());
+    elements.lobbyBtn.addEventListener('click', () => Game.toLobby());
+    elements.resultLobby.addEventListener('click', () => Game.toLobby());
+    elements.help.addEventListener('click', () => elements.helpDialog.showModal());
+    elements.closeHelp.addEventListener('click', () => elements.helpDialog.close());
+    elements.repeat.addEventListener('click', () => Game.speakStatus());
+
+    elements.sound.addEventListener('click', () => {
+      const enabled = elements.sound.getAttribute('aria-pressed') !== 'true';
+      elements.sound.setAttribute('aria-pressed', String(enabled));
+      elements.sound.textContent = enabled ? '음성 켜짐' : '음성 꺼짐';
+      TW.TTS.setEnabled(enabled);
+      if (enabled) TW.TTS.speak('음성 안내가 켜졌습니다.');
+      TW.Banner.set(`음성 안내가 ${enabled ? '켜졌습니다' : '꺼졌습니다'}.`, 'ok');
+    });
+
+    elements.dotpad.addEventListener('click', async () => {
+      if (DotPad.device) {
+        await DotPad.disconnect();
+        TW.Banner.set('닷패드 연결을 해제했습니다.', 'warn', true);
+        return;
+      }
+      try {
+        const connected = await DotPad.connect();
+        if (!connected) TW.Banner.set('닷패드 연결이 취소되었거나 실패했습니다.', 'warn', true);
+      } catch (error) {
+        console.error(error);
+        TW.Banner.set(error.message || '닷패드 연결 중 오류가 발생했습니다.', 'bad', true);
+        TW.TTS.speak('닷패드 연결에 실패했습니다. 화면과 키보드로 계속할 수 있습니다.');
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (elements.helpDialog.open || elements.resultDialog.open) return;
+      const key = event.key;
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(key)) event.preventDefault();
+      if (!Game.running) return;
+      const actions = {
+        ArrowLeft: () => Game.move(-1, 0),
+        ArrowRight: () => Game.move(1, 0),
+        ArrowUp: () => Game.move(0, -1),
+        ArrowDown: () => Game.move(0, 1),
+        Enter: () => Game.confirm(),
+        ' ': () => Game.confirm(),
+        h: () => elements.helpDialog.showModal(),
+        H: () => elements.helpDialog.showModal(),
+        r: () => Game.speakStatus(),
+        R: () => Game.speakStatus(),
+        n: () => Game.start(),
+        N: () => Game.start()
+      };
+      actions[key]?.();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && Game.running) {
+        Game.clearTimers();
+        Game.moleIndex = -1;
+        Game.render();
+        TW.Banner.set('게임이 일시 정지되었습니다. 화면으로 돌아오면 다시 시작합니다.', 'warn');
+      } else if (!document.hidden && Game.running) {
+        Game.spawnTimer = setTimeout(() => Game.spawn(), 800);
+        TW.Banner.set('게임을 다시 시작합니다.', 'ok');
+      }
+    });
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('embed') === '1') document.body.classList.add('embed');
+    window.addEventListener('load', () => {
+      TW.TTS.setLang('ko');
+      TW.post('game-ready', { version: '1.0.0' });
+    });
+    window.addEventListener('beforeunload', () => DotPad.disconnect());
+  </script>
 </body>
 </html>
